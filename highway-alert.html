@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NH44 Highway Alert System</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;500;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --red: #E24B4A;
+    --red-dark: #A32D2D;
+    --amber: #EF9F27;
+    --green: #1D9E75;
+    --bg: #0a0c0f;
+    --bg2: #111418;
+    --bg3: #181c22;
+    --border: rgba(255,255,255,0.08);
+    --text: #f0f2f5;
+    --muted: #8a9099;
+    --font-display: 'Barlow Condensed', sans-serif;
+    --font-body: 'Barlow', sans-serif;
+    --font-mono: 'Share Tech Mono', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    height: 56px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-logo {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .nav-logo span { color: var(--red); }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--green);
+    font-weight: 500;
+  }
+  .live-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    padding: 5rem 2rem 4rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+  .hero-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--red);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(42px, 6vw, 72px);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--red);
+  }
+  .hero-desc {
+    font-size: 16px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 2rem;
+  }
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--font-body);
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--red); color: #fff; }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-outline:hover { border-color: rgba(255,255,255,0.25); background: var(--bg3); }
+
+  /* ─── LIVE STATS ─── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .stat-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+  }
+  .stat-label {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 900;
+    line-height: 1;
+  }
+  .stat-value.danger { color: var(--red); }
+  .stat-value.warn { color: var(--amber); }
+  .stat-value.ok { color: var(--green); }
+  .stat-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ─── SECTION ─── */
+  section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.75rem;
+  }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .section-meta {
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--muted);
+  }
+
+  /* ─── HIGHWAY MAP ─── */
+  .highway-map {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    overflow-x: auto;
+  }
+  .highway-strip {
+    position: relative;
+    height: 80px;
+    background: #1a1f28;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  .road-line {
+    position: absolute;
+    top: 50%;
+    left: 0; right: 0;
+    height: 2px;
+    background: repeating-linear-gradient(to right, #f0c040 0, #f0c040 24px, transparent 24px, transparent 48px);
+    transform: translateY(-50%);
+  }
+  .km-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .incident-markers {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+  }
+  .marker {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .marker:hover { transform: scale(1.15); }
+  .marker-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--bg2);
+    animation: blink 1.2s step-start infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .marker-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    margin-top: 4px;
+    white-space: nowrap;
+  }
+
+  /* ─── INCIDENTS TABLE ─── */
+  .incidents-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .incidents-table th {
+    text-align: left;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .incidents-table td {
+    padding: 0.8rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .incidents-table tr:last-child td { border-bottom: none; }
+  .incidents-table tr:hover td { background: var(--bg3); }
+  .severity-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    padding: 2px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .sev-high { background: rgba(226,75,74,0.15); color: var(--red); }
+  .sev-med { background: rgba(239,159,39,0.15); color: var(--amber); }
+  .sev-low { background: rgba(29,158,117,0.15); color: var(--green); }
+  .incident-type {
+    display: flex; align-items: center; gap: 8px; font-weight: 500;
+  }
+  .type-icon {
+    width: 28px; height: 28px;
+    border-radius: 4px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .time-ago {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* ─── ALERT FEED ─── */
+  .alert-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .alert-item {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-left: 3px solid transparent;
+    border-radius: 0 6px 6px 0;
+    padding: 0.9rem 1rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1rem;
+    align-items: start;
+    animation: slideIn 0.4s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-12px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .alert-item.high { border-left-color: var(--red); }
+  .alert-item.medium { border-left-color: var(--amber); }
+  .alert-item.low { border-left-color: var(--green); }
+  .alert-icon { font-size: 20px; padding-top: 2px; }
+  .alert-title { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
+  .alert-body { font-size: 13px; color: var(--muted); }
+  .alert-time {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* ─── RISK GAUGE ─── */
+  .risk-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  .risk-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+  .risk-card-title {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 1rem;
+    color: var(--muted);
+  }
+  .gauge-bar {
+    height: 8px;
+    background: var(--bg3);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 4px;
+  }
+  .gauge-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s ease;
+  }
+  .gauge-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+  .gauge-val { font-family: var(--font-mono); font-weight: 600; color: var(--text); }
+
+  /* ─── SUBSCRIBE ─── */
+  .subscribe-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+  }
+  .subscribe-box h3 {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .subscribe-box p {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 1.5rem;
+  }
+  .subscribe-form {
+    display: flex;
+    gap: 10px;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  .subscribe-form input {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: var(--font-body);
+    padding: 10px 14px;
+    outline: none;
+  }
+  .subscribe-form input:focus { border-color: var(--red); }
+  .subscribe-form input::placeholder { color: var(--muted); }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+  footer a { color: var(--red); text-decoration: none; }
+
+  /* ─── TICKER ─── */
+  .ticker-bar {
+    background: var(--red-dark);
+    overflow: hidden;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .ticker-inner {
+    display: flex;
+    white-space: nowrap;
+    animation: ticker 28s linear infinite;
+    gap: 0;
+  }
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .ticker-item {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    padding: 0 2.5rem;
+    color: #fff;
+  }
+  .ticker-sep { color: rgba(255,255,255,0.4); margin: 0 0.5rem; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 700px) {
+    .hero { grid-template-columns: 1fr; gap: 2rem; padding: 3rem 1.5rem 2rem; }
+    .risk-section { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .subscribe-form { flex-direction: column; }
+    .nav-links { display: none; }
+    section { padding: 2rem 1.25rem; }
+  }
+
+  /* scroll reveal */
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .revealed { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker-bar" role="marquee" aria-label="Live highway alerts">
+  <div class="ticker-inner" id="ticker">
+    <span class="ticker-item">&#9888; KM 214 — Accident reported, 2 lanes blocked</span>
+    <span class="ticker-item"><span class="ticker-sep">|</span> KM 189 — Heavy fog, visibility &lt; 50m</span>
+    <span class="ticker-item"><span class="ticker-sep">|</span> KM 301 — Wrong-way vehicle alert</span>
+    <span class="ticker-item"><span class="ticker-sep">|</span> KM 156 — Speed trap active, slow down</span>
+    <span class="ticker-item"><span class="ticker-sep">|</span> KM 270 — Debris on road, caution advised</span>
+    <span class="ticker-item"><span class="ticker-sep">|</span> KM 330 — Traffic bottleneck, 8km queue</span>
+    <span class="ticker-item">&#9888; KM 214 — Accident reported, 2 lanes blocked</span>
+    <span class="ticker-item"><span class="ticker-sep">|</span> KM 189 — Heavy fog, visibility &lt; 50m</span>
+    <span class="ticker-item"><span class="ticker-sep">|</span> KM 301 — Wrong-way vehicle alert</span>
+    <span class="ticker-item"><span class="ticker-sep">|</span> KM 156 — Speed trap active, slow down</span>
+    <span class="ticker-item"><span class="ticker-sep">|</span> KM 270 — Debris on road, caution advised</span>
+    <span class="ticker-item"><span class="ticker-sep">|</span> KM 330 — Traffic bottleneck, 8km queue</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#"><span>NH44</span> AlertNet</a>
+  <ul class="nav-links">
+    <li><a href="#incidents">Incidents</a></li>
+    <li><a href="#map">Highway Map</a></li>
+    <li><a href="#feed">Live Feed</a></li>
+    <li><a href="#alerts">Subscribe</a></li>
+  </ul>
+  <div class="live-badge">
+    <span class="live-dot"></span>
+    LIVE MONITORING
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div>
+    <p class="hero-eyebrow">&#9888; NH44 · Coimbatore → Chennai Corridor</p>
+    <h1>Highway<br><em>Risk Alert</em><br>System</h1>
+    <p class="hero-desc">Real-time incident detection and instant alerts for the NH44 corridor. Monitor accidents, road hazards, and traffic disruptions across the full stretch.</p>
+    <div class="hero-actions">
+      <a href="#feed" class="btn btn-primary">&#8680; View live feed</a>
+      <a href="#alerts" class="btn btn-outline">Subscribe to alerts</a>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Active incidents</div>
+      <div class="stat-value danger" id="s-incidents">6</div>
+      <div class="stat-sub">On NH44 right now</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Risk level</div>
+      <div class="stat-value warn" id="s-risk">HIGH</div>
+      <div class="stat-sub">Updated 2 min ago</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Vehicles monitored</div>
+      <div class="stat-value ok" id="s-vehicles">1,842</div>
+      <div class="stat-sub">Across 47 checkpoints</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Alerts sent today</div>
+      <div class="stat-value" id="s-alerts">318</div>
+      <div class="stat-sub">Via SMS &amp; WhatsApp</div>
+    </div>
+  </div>
+</div>
+
+<!-- HIGHWAY MAP -->
+<section id="map" class="reveal">
+  <div class="section-header">
+    <span class="section-title">&#9776; Highway corridor — NH44</span>
+    <span class="section-meta">Coimbatore &#8594; Chennai · 504 km</span>
+  </div>
+  <div class="highway-map">
+    <div style="display:flex; justify-content:space-between; font-size:12px; font-family:var(--font-mono); color:var(--muted); margin-bottom:0.6rem;">
+      <span>Coimbatore KM 0</span>
+      <span>Dharmapuri KM 180</span>
+      <span>Krishnagiri KM 260</span>
+      <span>Vellore KM 350</span>
+      <span>Chennai KM 504</span>
+    </div>
+    <div class="highway-strip">
+      <div class="road-line"></div>
+      <div class="incident-markers">
+        <div class="marker" style="left:28%;" title="KM 141 — Accident">
+          <div class="marker-dot" style="background:var(--red);"></div>
+          <div class="marker-label" style="color:var(--red);">KM 141</div>
+        </div>
+        <div class="marker" style="left:37%;" title="KM 187 — Fog">
+          <div class="marker-dot" style="background:var(--amber);"></div>
+          <div class="marker-label" style="color:var(--amber);">KM 187</div>
+        </div>
+        <div class="marker" style="left:42%;" title="KM 214 — Wrong-way">
+          <div class="marker-dot" style="background:var(--red);"></div>
+          <div class="marker-label" style="color:var(--red);">KM 214</div>
+        </div>
+        <div class="marker" style="left:60%;" title="KM 301 — Debris">
+          <div class="marker-dot" style="background:var(--amber);"></div>
+          <div class="marker-label" style="color:var(--amber);">KM 301</div>
+        </div>
+        <div class="marker" style="left:53%;" title="KM 270 — Traffic">
+          <div class="marker-dot" style="background:var(--green);"></div>
+          <div class="marker-label" style="color:var(--green);">KM 270</div>
+        </div>
+        <div class="marker" style="left:65%;" title="KM 330 — Bottleneck">
+          <div class="marker-dot" style="background:var(--red);"></div>
+          <div class="marker-label" style="color:var(--red);">KM 330</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex; gap:1.5rem; font-size:12px; font-family:var(--font-mono);">
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:var(--red);display:inline-block;"></span><span style="color:var(--muted);">High risk</span></span>
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:var(--amber);display:inline-block;"></span><span style="color:var(--muted);">Medium risk</span></span>
+      <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:var(--green);display:inline-block;"></span><span style="color:var(--muted);">Low risk</span></span>
+    </div>
+  </div>
+</section>
+
+<!-- INCIDENTS TABLE -->
+<section id="incidents" class="reveal">
+  <div class="section-header">
+    <span class="section-title">&#9888; Active incidents</span>
+    <span class="section-meta" id="inc-count">6 incidents detected</span>
+  </div>
+  <div style="background:var(--bg2); border:1px solid var(--border); border-radius:8px; overflow:hidden;">
+    <table class="incidents-table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Location</th>
+          <th>Severity</th>
+          <th>Lanes blocked</th>
+          <th>Reported</th>
+        </tr>
+      </thead>
+      <tbody id="incidents-body">
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- RISK GAUGES -->
+<section class="reveal">
+  <div class="section-header">
+    <span class="section-title">&#9650; Risk analytics</span>
+    <span class="section-meta">Updated every 60s</span>
+  </div>
+  <div class="risk-section">
+    <div class="risk-card">
+      <div class="risk-card-title">Risk by zone</div>
+      <div id="zone-gauges"></div>
+    </div>
+    <div class="risk-card">
+      <div class="risk-card-title">Incident breakdown today</div>
+      <canvas id="breakdown-chart" height="180"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- LIVE ALERT FEED -->
+<section id="feed" class="reveal">
+  <div class="section-header">
+    <span class="section-title">&#8680; Live alert feed</span>
+    <span class="section-meta" id="feed-time">Streaming</span>
+  </div>
+  <div class="alert-feed" id="alert-feed"></div>
+</section>
+
+<!-- SUBSCRIBE -->
+<section id="alerts" class="reveal">
+  <div class="subscribe-box">
+    <h3>Get instant highway alerts</h3>
+    <p>Enter your mobile number to receive live SMS &amp; WhatsApp notifications for incidents on NH44.</p>
+    <div class="subscribe-form">
+      <input type="tel" id="phone-input" placeholder="+91 98765 43210" maxlength="15">
+      <button class="btn btn-primary" onclick="subscribe()">Subscribe</button>
+    </div>
+    <p id="sub-msg" style="margin-top:0.75rem; font-size:13px; min-height:18px;"></p>
+  </div>
+</section>
+
+<footer>
+  <p>NH44 AlertNet &mdash; Simulated mini-project demo &mdash; Not for real emergency use &mdash; Built with open web tech &middot; <a href="#">Source code</a></p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+  const incidents = [
+    { type: "Accident", icon: "&#128664;", km: "KM 141", severity: "high", sevLabel: "HIGH", lanes: "2 of 4", time: "8 min ago" },
+    { type: "Wrong-way vehicle", icon: "&#9888;", km: "KM 214", severity: "high", sevLabel: "HIGH", lanes: "Full block", time: "12 min ago" },
+    { type: "Dense fog", icon: "&#127787;", km: "KM 187", severity: "med", sevLabel: "MEDIUM", lanes: "0 (speed limit)", time: "19 min ago" },
+    { type: "Road debris", icon: "&#128679;", km: "KM 301", severity: "med", sevLabel: "MEDIUM", lanes: "1 of 4", time: "31 min ago" },
+    { type: "Traffic bottleneck", icon: "&#128664;", km: "KM 330", severity: "high", sevLabel: "HIGH", lanes: "3 of 4 slow", time: "44 min ago" },
+    { type: "Pothole reported", icon: "&#128679;", km: "KM 270", severity: "low", sevLabel: "LOW", lanes: "Shoulder only", time: "1 hr ago" },
+  ];
+
+  const tbody = document.getElementById("incidents-body");
+  incidents.forEach(i => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><div class="incident-type"><span class="type-icon">${i.icon}</span>${i.type}</div></td>
+      <td style="font-family:var(--font-mono);font-size:13px;">${i.km}</td>
+      <td><span class="severity-badge sev-${i.severity === 'high' ? 'high' : i.severity === 'med' ? 'med' : 'low'}">${i.sevLabel}</span></td>
+      <td style="font-size:13px;color:var(--muted);">${i.lanes}</td>
+      <td class="time-ago">${i.time}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const zones = [
+    { label: "Coimbatore zone (KM 0–100)", pct: 18, color: "#1D9E75" },
+    { label: "Dharmapuri zone (KM 100–220)", pct: 74, color: "#E24B4A" },
+    { label: "Krishnagiri zone (KM 220–320)", pct: 58, color: "#EF9F27" },
+    { label: "Vellore zone (KM 320–420)", pct: 81, color: "#E24B4A" },
+    { label: "Chennai zone (KM 420–504)", pct: 33, color: "#EF9F27" },
+  ];
+
+  const zoneEl = document.getElementById("zone-gauges");
+  zones.forEach(z => {
+    zoneEl.innerHTML += `
+      <div class="gauge-row" style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+        <span style="color:var(--muted);font-size:11px;font-family:var(--font-mono);">${z.label}</span>
+        <span class="gauge-val" style="color:${z.color};">${z.pct}%</span>
+      </div>
+      <div class="gauge-bar"><div class="gauge-fill" style="width:${z.pct}%;background:${z.color};"></div></div>
+      <div style="margin-bottom:0.9rem;"></div>
+    `;
+  });
+
+  const ctx = document.getElementById("breakdown-chart").getContext("2d");
+  new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ["Accidents", "Fog/Weather", "Wrong-way", "Debris", "Traffic jam"],
+      datasets: [{
+        data: [34, 18, 7, 21, 20],
+        backgroundColor: ["#E24B4A", "#85B7EB", "#EF9F27", "#888780", "#1D9E75"],
+        borderWidth: 0,
+        hoverOffset: 6,
+      }]
+    },
+    options: {
+      plugins: {
+        legend: {
+          position: "right",
+          labels: { color: "#8a9099", font: { size: 12, family: "'Share Tech Mono'" }, boxWidth: 12, padding: 12 }
+        }
+      },
+      cutout: "68%",
+    }
+  });
+
+  const feedAlerts = [
+    { sev: "high", icon: "&#9888;", title: "Wrong-way vehicle — KM 214", body: "Vehicle travelling in wrong direction near Dharmapuri overpass. All vehicles advised to pull to the left immediately.", time: "just now" },
+    { sev: "high", icon: "&#128664;", title: "Multi-vehicle collision — KM 141", body: "3-vehicle pile-up, 2 lanes blocked. Emergency services dispatched. Expected clearance: 45 min.", time: "8 min ago" },
+    { sev: "medium", icon: "&#127787;", title: "Fog advisory — KM 185–195", body: "Visibility dropped to under 50m. Speed limit reduced to 40 km/h. Hazard lights recommended.", time: "19 min ago" },
+    { sev: "high", icon: "&#128664;", title: "Severe congestion — KM 330", body: "8km queue forming at Vellore bypass. ETA delay: 35 min. Alternate route via SH-15 advised.", time: "44 min ago" },
+    { sev: "medium", icon: "&#128679;", title: "Road debris — KM 301", body: "Fallen cargo from truck. Left lane partially blocked. Maintenance crew en route.", time: "31 min ago" },
+    { sev: "low", icon: "&#128679;", title: "Pothole reported — KM 270", body: "User-reported pothole on shoulder lane near Krishnagiri rest area. Marked for inspection.", time: "1 hr ago" },
+  ];
+
+  const feedEl = document.getElementById("alert-feed");
+  feedAlerts.forEach((a, i) => {
+    setTimeout(() => {
+      const el = document.createElement("div");
+      el.className = `alert-item ${a.sev}`;
+      el.innerHTML = `
+        <span class="alert-icon">${a.icon}</span>
+        <div><div class="alert-title">${a.title}</div><div class="alert-body">${a.body}</div></div>
+        <span class="alert-time">${a.time}</span>
+      `;
+      feedEl.appendChild(el);
+    }, i * 180);
+  });
+
+  function subscribe() {
+    const val = document.getElementById("phone-input").value.trim();
+    const msg = document.getElementById("sub-msg");
+    if (val.length < 10) {
+      msg.style.color = "#E24B4A";
+      msg.textContent = "Please enter a valid mobile number.";
+      return;
+    }
+    msg.style.color = "#1D9E75";
+    msg.textContent = "Subscribed! You will receive SMS alerts for NH44 incidents.";
+    document.getElementById("phone-input").value = "";
+  }
+
+  const feedTime = document.getElementById("feed-time");
+  setInterval(() => {
+    const now = new Date();
+    feedTime.textContent = "Last updated: " + now.toLocaleTimeString();
+  }, 5000);
+
+  const reveals = document.querySelectorAll(".reveal");
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("revealed"); } });
+  }, { threshold: 0.12 });
+  reveals.forEach(r => observer.observe(r));
+
+  let count = 6;
+  setInterval(() => {
+    const inc = ["Stalled vehicle", "Oil spill", "Animal on road", "Tyre burst"];
+    const km = "KM " + Math.floor(Math.random() * 400 + 50);
+    count++;
+    document.getElementById("s-incidents").textContent = count;
+    const el = document.createElement("div");
+    el.className = "alert-item medium";
+    const ri = inc[Math.floor(Math.random() * inc.length)];
+    el.innerHTML = `<span class="alert-icon">&#128679;</span><div><div class="alert-title">${ri} — ${km}</div><div class="alert-body">New report from field sensor. Investigating.</div></div><span class="alert-time">just now</span>`;
+    feedEl.insertBefore(el, feedEl.firstChild);
+  }, 14000);
+</script>
+</body>
+</html>
